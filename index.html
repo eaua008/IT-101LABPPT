@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management System Presentation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-primary: #3b82f6;
+            --accent-secondary: #10b981;
+            --accent-danger: #f43f5e;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --transition-speed: 0.6s;
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Presentation Container */
+        #presentation {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(50px);
+            transition: all var(--transition-speed) var(--ease);
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+        }
+
+        .slide.prev {
+            transform: translateX(-50px);
+            opacity: 0;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            z-index: 100;
+        }
+
+        #progress-bar {
+            height: 100%;
+            background: var(--accent-primary);
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px var(--accent-primary);
+        }
+
+        /* Typography & Layout */
+        .slide-content {
+            max-width: 1100px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: var(--accent-primary);
+            margin-bottom: 3rem;
+            font-weight: 400;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
+            border-left: 6px solid var(--accent-primary);
+            padding-left: 1.5rem;
+        }
+
+        /* Grids & Cards */
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .grid-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
+
+        .card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-primary);
+        }
+
+        .card h3 {
+            margin-bottom: 1rem;
+            color: var(--accent-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card p {
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--card-bg);
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        th {
+            background: rgba(255,255,255,0.05);
+            padding: 1.25rem;
+            text-align: left;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-dim);
+        }
+
+        td {
+            padding: 1.25rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        tr:hover {
+            background: rgba(255,255,255,0.02);
+        }
+
+        /* Controls */
+        .controls {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        .btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .btn:disabled {
+            opacity: 0.2;
+            cursor: not-allowed;
+        }
+
+        .side-nav {
+            position: fixed;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            z-index: 100;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dot.active {
+            background: var(--accent-primary);
+            transform: scale(1.5);
+            box-shadow: 0 0 10px var(--accent-primary);
+        }
+
+        /* Specific Highlights */
+        .problem-card { border-left: 4px solid var(--accent-danger); }
+        .solution-card { background: var(--accent-primary); color: white; }
+        .solution-card p { color: rgba(255,255,255,0.8); }
+        .solution-card h3 { color: white; }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--accent-primary);
+        }
+
+        /* Footer Info on Slide 1 */
+        .members-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin-top: 4rem;
+            text-align: left;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 2rem;
+        }
+
+        .info-item label {
+            display: block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 0.25rem;
+        }
+
+        .info-item span {
+            font-weight: 600;
+            font-size: 1.125rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .slide { padding: 2rem; }
+            .members-list { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="progress-container">
+        <div id="progress-bar"></div>
+    </div>
+
+    <div id="presentation">
+        <!-- Slide 1: Title -->
+        <section class="slide active" id="slide-1">
+            <div class="slide-content text-center">
+                <div style="margin-bottom: 2rem;">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-primary);">
+                        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
+                        <path d="m3.3 7 8.7 5 8.7-5"></path>
+                        <path d="M12 22V12"></path>
+                    </svg>
+                </div>
+                <h1>Simple Record-Keeping<br>Application</h1>
+                <p class="subtitle">(Inventory Management System)</p>
+                
+                <div class="members-list">
+                    <div class="info-item">
+                        <label>Course Name</label>
+                        <span>Computer Science / IT-101LAB</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Group & Section</label>
+                        <span>Group 1 / A122</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Members</label>
+                        <span>Ballesteros,Kalim,Maulit,Pondoc</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Instructor</label>
+                        <span>Prof. Rogelio Badiang Jr.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 2: Project Overview -->
+        <section class="slide" id="slide-2">
+            <div class="slide-content">
+                <h2 class="section-title">Project Overview</h2>
+                <p style="font-size: 1.25rem; color: var(--text-dim); margin-bottom: 3rem; font-style: italic;">
+                    "Developing a system that improves how product records and stock transactions are handled."
+                </p>
+                <div class="grid grid-2">
+                    <div class="card">
+                        <h3>Process Analysis</h3>
+                        <p>Analyzes the current manual or semi-manual inventory process to find inefficiencies.</p>
+                    </div>
+                    <div class="card">
+                        <h3>Business Rules</h3>
+                        <p>Identifies existing tracking rules used for product and stock lifecycle management.</p>
+                    </div>
+                    <div class="card">
+                        <h3>Record Lifecycle</h3>
+                        <p>Highlights how records are created, updated, viewed, and deleted (CRUD).</p>
+                    </div>
+                    <div class="card">
+                        <h3>Accuracy</h3>
+                        <p>Ensures accurate stock monitoring and high levels of operational accountability.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 3: Problem Statement -->
+        <section class="slide" id="slide-3">
+            <div class="slide-content">
+                <h2 class="section-title">Problem Statement</h2>
+                <div class="grid grid-2">
+                    <div class="card problem-card">
+                        <h3 style="color: var(--accent-danger);">Manual Challenges</h3>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="margin-bottom: 0.75rem;">• Inaccurate stock counts</li>
+                            <li style="margin-bottom: 0.75rem;">• Difficulty tracking product movement</li>
+                            <li style="margin-bottom: 0.75rem;">• Late detection of low-stock items</li>
+                            <li style="margin-bottom: 0.75rem;">• Lack of audit trails</li>
+                        </ul>
+                    </div>
+                    <div class="card solution-card">
+                        <h3>The Solution</h3>
+                        <p>A simple, reliable, and organized inventory system that manages products, tracks changes in real-time, and alerts users before stock-outs occur.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 4: Description -->
+        <section class="slide" id="slide-4">
+            <div class="slide-content">
+                <h2 class="section-title">Application Description</h2>
+                <div class="grid grid-2" style="margin-bottom: 2rem;">
+                    <div class="card">
+                        <h3>Intended Users</h3>
+                        <p><strong>Admin:</strong> Manages users, products, and settings.<br>
+                        <strong>Staff:</strong> Updates stock and views inventory reports.</p>
+                    </div>
+                    <div class="card">
+                        <h3>Core Goals</h3>
+                        <p>Improve organizational efficiency through centralized record keeping and automated notifications.</p>
+                    </div>
+                </div>
+                <div class="grid grid-3">
+                    <div class="card" style="padding: 1.5rem;">
+                        <span class="badge">Feature</span>
+                        <p style="margin-top: 1rem;">Edit/Delete Products</p>
+                    </div>
+                    <div class="card" style="padding: 1.5rem;">
+                        <span class="badge">Feature</span>
+                        <p style="margin-top: 1rem;">Category Tags</p>
+                    </div>
+                    <div class="card" style="padding: 1.5rem;">
+                        <span class="badge">Feature</span>
+                        <p style="margin-top: 1rem;">Audit Logs</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 5: Roles -->
+        <section class="slide" id="slide-5">
+            <div class="slide-content">
+                <h2 class="section-title">Modules & Role Assignment</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Module</th>
+                            <th>Description</th>
+                            <th>Responsible Member</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>ProductManager</strong></td>
+                            <td>Creation, editing, and deletion</td>
+                            <td><em>Name 1</em></td>
+                        </tr>
+                        <tr>
+                            <td><strong>InventoryManager</strong></td>
+                            <td>Sales and restocking updates</td>
+                            <td><em>Name 2</em></td>
+                        </tr>
+                        <tr>
+                            <td><strong>AlertManager</strong></td>
+                            <td>Low-stock notifications</td>
+                            <td><em>Name 3</em></td>
+                        </tr>
+                        <tr>
+                            <td><strong>HistoryLogger</strong></td>
+                            <td>Audit trails & stock changes</td>
+                            <td><em>Name 1</em></td>
+                        </tr>
+                        <tr>
+                            <td><strong>UserManager</strong></td>
+                            <td>Roles and permissions</td>
+                            <td><em>Name 2</em></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Slide 6: System Features -->
+        <section class="slide" id="slide-6">
+            <div class="slide-content">
+                <h2 class="section-title">System Features</h2>
+                <div class="grid grid-3">
+                    <div class="card">
+                        <div style="color: var(--accent-secondary); margin-bottom: 1rem;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                        </div>
+                        <h3>CRUD Ops</h3>
+                        <p>Full control over product entry and lifecycle management.</p>
+                    </div>
+                    <div class="card">
+                        <div style="color: var(--accent-secondary); margin-bottom: 1rem;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        </div>
+                        <h3>Smart Alerts</h3>
+                        <p>Triggers notifications when items fall below safety levels.</p>
+                    </div>
+                    <div class="card">
+                        <div style="color: var(--accent-secondary); margin-bottom: 1rem;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                        </div>
+                        <h3>Stock Trends</h3>
+                        <p>Visual representation of movement and availability over time.</p>
+                    </div>
+                    <div class="card">
+                        <div style="color: var(--accent-secondary); margin-bottom: 1rem;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        </div>
+                        <h3>Validation</h3>
+                        <p>Prevents negative stock and invalid data entry.</p>
+                    </div>
+                    <div class="card">
+                        <div style="color: var(--accent-secondary); margin-bottom: 1rem;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </div>
+                        <h3>Timestamps</h3>
+                        <p>Records every single action with precise date and time.</p>
+                    </div>
+                    <div class="card">
+                        <div style="color: var(--accent-secondary); margin-bottom: 1rem;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        </div>
+                        <h3>Reporting</h3>
+                        <p>Generate summaries for admin audit and review.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Slide 7: Conclusion -->
+        <section class="slide" id="slide-7">
+            <div class="slide-content text-center">
+                <div style="margin-bottom: 3rem;">
+                    <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-secondary);">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                </div>
+                <h2 style="font-size: 3.5rem; margin-bottom: 2rem;">Conclusion</h2>
+                <p style="font-size: 1.5rem; max-width: 800px; margin: 0 auto; line-height: 1.6; color: var(--text-dim);">
+                    Our Inventory Management System offers a <span style="color: var(--text-main); font-weight: 700;">simple yet robust solution</span> to manual record-keeping errors, ensuring accuracy and organizational growth.
+                </p>
+                <div style="margin-top: 4rem;">
+                    <p style="text-transform: uppercase; letter-spacing: 0.2em; font-weight: 600; opacity: 0.5;">Thank you for your attention</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="side-nav" id="side-nav"></div>
+
+    <div class="controls">
+        <button class="btn" id="prevBtn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            Back
+        </button>
+        <button class="btn" id="nextBtn">
+            Next
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+    </div>
+
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const nextBtn = document.getElementById('nextBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const progressBar = document.getElementById('progress-bar');
+        const sideNav = document.getElementById('side-nav');
+        let currentSlide = 0;
+
+        // Initialize Side Dots
+        slides.forEach((_, i) => {
+            const dot = document.createElement('div');
+            dot.className = `dot ${i === 0 ? 'active' : ''}`;
+            dot.onclick = () => goToSlide(i);
+            sideNav.appendChild(dot);
+        });
+
+        const dots = document.querySelectorAll('.dot');
+
+        function updateUI() {
+            slides.forEach((slide, i) => {
+                slide.classList.remove('active', 'prev');
+                if (i === currentSlide) {
+                    slide.classList.add('active');
+                } else if (i < currentSlide) {
+                    slide.classList.add('prev');
+                }
+            });
+
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('active', i === currentSlide);
+            });
+
+            const progress = ((currentSlide + 1) / slides.length) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            prevBtn.disabled = currentSlide === 0;
+            nextBtn.innerText = currentSlide === slides.length - 1 ? 'Finish' : 'Next';
+            if (currentSlide === slides.length - 1) {
+                nextBtn.innerHTML = 'Finish <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+            } else {
+                 nextBtn.innerHTML = 'Next <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>';
+            }
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            updateUI();
+        }
+
+        nextBtn.onclick = () => {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                updateUI();
+            } else {
+                alert('Presentation Finished!');
+            }
+        };
+
+        prevBtn.onclick = () => {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateUI();
+            }
+        };
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+                if (currentSlide < slides.length - 1) { currentSlide++; updateUI(); }
+            } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                if (currentSlide > 0) { currentSlide--; updateUI(); }
+            }
+        });
+
+        // Initialize
+        updateUI();
+    </script>
+</body>
+</html>
